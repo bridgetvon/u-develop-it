@@ -39,14 +39,46 @@ db.connect(function (err) {
 
 
 
-
-
 //query method runs the sql query and executes the callback 
 //the callback captures the response from the query in two variables 
 //the err and rows which is the database query response 
-db.query(`SELECT * FROM candidates`, (err, rows) => {
-    console.log(rows);
-});
+// db.query(`SELECT * FROM candidates`, (err, rows) => {
+//     console.log(rows);
+// });
+
+//get a single candidate by id 
+// db.query(`SELECT * FROM candidates WHERE id = 1`, (err, row) => {
+//     if (err) {
+//         console.log(err);
+//     }
+//     console.log(row);
+// });
+
+//Delete a candidate 
+// ? denotes a placeholder -> makes this a prepared statement 
+//a prepared statement can execute the same SQL statements repeatedly using different values in place of the place holder 
+//an aditional param argument follows the prepared statement provides values to use in place 
+//of the prepared statments placeholders
+//this is the same as delete from candidates where id=1
+// db.query(`DELETE FROM candidates WHERE id = ?`, 1, (err, result) => {
+//     if (err) {
+//         console.log(err);
+//     }
+//     console.log(result);
+// });
+
+//Creat a candidate 
+// const sql = `INSERT INTO candidates (id, first_name, last_name, indsutry_connected)
+//             VALUES(?,?,?,?)`;
+// const params = [1, 'Ronald', 'Firbank', 1];
+
+// db.query(sql, params, (err, result) => {
+//     if(err) {
+//         console.log(err);
+//     }
+//     console.log(result);
+// });
+
 
 // test route to confirm express.js connection 
 // app.get('/', (req, res) => {
