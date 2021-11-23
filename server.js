@@ -2,6 +2,7 @@ const mysql = require('mysql2');
 const express = require('express');
 const PORT = process.env.PORT || 3007;
 const app = express();
+const inputCheck = require('./utils/inputCheck');
 
 //express middleware
 app.use(express.urlencoded({ extended: false}));
@@ -42,43 +43,84 @@ db.connect(function (err) {
 //query method runs the sql query and executes the callback 
 //the callback captures the response from the query in two variables 
 //the err and rows which is the database query response 
-// db.query(`SELECT * FROM candidates`, (err, rows) => {
-//     console.log(rows);
-// });
+app.get('/api/candidates', (req, res) =>{
+    const sql = `SELECT * FROM candidates`;
+
+db.query(sql, (err, rows) => {
+   if (err) {
+       res.status(500).json({ error: err.message });
+       return;
+   }
+   res.json({
+       message: 'success', 
+       data: rows
+   });
+  });
+});
 
 //get a single candidate by id 
-// db.query(`SELECT * FROM candidates WHERE id = 1`, (err, row) => {
-//     if (err) {
-//         console.log(err);
-//     }
-//     console.log(row);
-// });
+app.get('/api/candidate/:id', (req, res) => {
+    const sql = `SELECT * FROM candidates WHERE id = ?`;
+    const params = [req.params.id];
 
+    db.query(sql, params, (err, row) => {
+        if (err) {
+            res.status(400).json({ error: err.message});
+            return;
+        }
+        res.json({
+            message: 'success', 
+            data: row
+        });
+    });
+});
 //Delete a candidate 
 // ? denotes a placeholder -> makes this a prepared statement 
 //a prepared statement can execute the same SQL statements repeatedly using different values in place of the place holder 
 //an aditional param argument follows the prepared statement provides values to use in place 
 //of the prepared statments placeholders
 //this is the same as delete from candidates where id=1
-// db.query(`DELETE FROM candidates WHERE id = ?`, 1, (err, result) => {
-//     if (err) {
-//         console.log(err);
-//     }
-//     console.log(result);
-// });
+app.delete('/api/candidate/:id', (req, res) => {
+    const sql = `DELETE FROM candidates WHERE id = ?`;
+    const params = [req.params.id];
 
+    db.query(sql, params, (err, result) => {
+        if (err) {
+            res.statusMessage(400).json({ error: res.message});
+        } else if (!result.affectedRows) {
+            res.json({
+                message: 'deleted',
+                changes: result.affectedRows, 
+                id: req.params.id
+            });
+
+        }
+    });
+});
 //Creat a candidate 
-// const sql = `INSERT INTO candidates (id, first_name, last_name, indsutry_connected)
-//             VALUES(?,?,?,?)`;
-// const params = [1, 'Ronald', 'Firbank', 1];
+app.post('/api/candidate', ({ body }, res) => {
+    const errors = inputCheck(body, 'first_name',  'last_name', 'indsutry_connected');
+    if (errors) {
+        res.status(400).json({ error: errors });
+        return;
+    }
 
-// db.query(sql, params, (err, result) => {
-//     if(err) {
-//         console.log(err);
-//     }
-//     console.log(result);
-// });
 
+const sql = `INSERT INTO candidates (first_name, last_name, industry_connected)
+  VALUES (?,?,?)`;
+const params = [body.first_name, body.last_name, body.industry_connected];
+
+db.query(sql, params, (err, result) => {
+  if (err) {
+    res.status(400).json({ error: err.message });
+    return;
+  }
+  res.json({
+    message: 'success',
+    data: body
+  });
+ });
+});
 
 // test route to confirm express.js connection 
 // app.get('/', (req, res) => {
