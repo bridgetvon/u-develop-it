@@ -40,6 +40,58 @@ db.connect(function (err) {
 
 
 
+
+//add route for parties 
+app.get('api/parties', (req, res) => {
+    const sql = `SELECT * FROM parties`; 
+    db.query(sql, (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json({
+            message: 'success',
+            data: rows
+        });
+    });
+});
+//add second parties route with id parameter 
+app.get('api/party:id', (req, res) => {
+    const sql = `SELECT * FROM parties WHERE id = ?`;
+    const params = [re.params.id];
+    db.query(sql, params, (err, row) => {
+        if (err) {
+            res.status(400).json({ error: err.message});
+            return;
+        }
+        res.json({
+            message: 'success',
+            data: row
+        });
+    });
+});
+
+app.delete('/api/party/:id', (req, res) => {
+    const sql = `DELETE FROM parties WHERE id = ?`;
+    const params = [req.params.id];
+    db.query(sql, params, (err, result) => {
+        if (err) {
+            res.status(400).json({ error: res.message });
+            //checks if anything was deleted 
+        } else if (!result.affectedRows) {
+            res.json({
+                message: "Party not found"
+            });
+        } else {
+            res.json({
+                message: 'deleted',
+                changes: result.affectedRows,
+                id: req.params.id
+            });
+        }
+    });
+});
+
 //query method runs the sql query and executes the callback 
 //the callback captures the response from the query in two variables 
 //the err and rows which is the database query response 
@@ -83,6 +135,7 @@ app.get('/api/candidate/:id', (req, res) => {
         });
     });
 });
+
 //Delete a candidate 
 // ? denotes a placeholder -> makes this a prepared statement 
 //a prepared statement can execute the same SQL statements repeatedly using different values in place of the place holder 
@@ -106,7 +159,7 @@ app.delete('/api/candidate/:id', (req, res) => {
         }
     });
 });
-//Creat a candidate 
+//Create a candidate 
 app.post('/api/candidate', ({ body }, res) => {
     const errors = inputCheck(body, 'first_name',  'last_name', 'indsutry_connected');
     if (errors) {
@@ -129,6 +182,35 @@ db.query(sql, params, (err, result) => {
     data: body
   });
  });
+});
+
+//update a candidates party 
+app.put('/api/candidate/:id', (req, res) => {
+    //force any put request to include a party_id property
+    const errors = inputCheck(req.body, 'party_id');
+    if (errors) {
+        res.status(400).json({ error: errors });
+        return;
+    }
+    const sql = `UPDATE candidates SET party_id = ?
+                WHERE ID = ?`;
+    const params = [req.body.party_id, req.params.id];
+    db.query(sql, params, (err, result) => {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            //check if record was found 
+        } else if (!result.affectedRows) {
+            res.json({
+                message: 'Candidate not found'
+            });
+        } else {
+            res.json({
+                message: 'success', 
+                data: req.body, 
+                changes: result.affectedRows
+            });
+        }
+    });
 });
 
 // test route to confirm express.js connection 
