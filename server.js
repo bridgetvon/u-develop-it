@@ -1,8 +1,10 @@
 const mysql = require('mysql2');
 const express = require('express');
-const PORT = process.env.PORT || 3007;
-const app = express();
 const inputCheck = require('./utils/inputCheck');
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
 
 //express middleware
 app.use(express.urlencoded({ extended: false}));
@@ -25,18 +27,6 @@ db.connect(function (err) {
     if (err) throw err;
     console.log(err);
 });
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
